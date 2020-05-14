@@ -16,7 +16,10 @@
     "test": "node test.js"
   },
   "eslintConfig": {
-    "extends": "mourner"
+    "extends": "mourner",
+    "parserOptions": {
+      "ecmaVersion": 2018
+    }
   },
   "files": [
     "index.js"

@@ -15,15 +15,20 @@ const defaultOptions = {
     resolve: (parent, path) => path
 };
 
+let AsyncFunction;
+try { AsyncFunction = (new Function('return (async () => {}).constructor;'))(); } catch (e) { /* ignore */ }
+
 function compile(ejs, options = {}) {
-    const {escape, locals, localsName, context, filename, read, resolve, cache} =
+    const {escape, locals, localsName, context, filename, read, resolve, cache, async} =
         Object.assign({}, defaultOptions, options);
+
+    if (async && !AsyncFunction) throw new Error('This environment does not support async/await.');
 
     let code = '\'use strict\'; ';
     if (locals && locals.length) code += `const {${locals.join(', ')}} = ${localsName}; `;
     code += compilePart(ejs, filename, read, resolve, cache || {});
 
-    const fn = new Function(localsName, '_esc', '_str', code);
+    const fn = new (async ? AsyncFunction : Function)(localsName, '_esc', '_str', code);
     return data => fn.call(context, data, escape, stringify);
 }
 

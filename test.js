@@ -128,3 +128,8 @@ test('includes', (t) => {
 
     t.end();
 });
+
+test('async', async (t) => {
+    t.equal(await compile('<%= await 0 %>', {async: true})(), '0', 'await');
+    t.throws(() => compile('<% await 0 %>')(), /await is only valid in async function/);
+});
