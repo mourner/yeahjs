@@ -18,5 +18,9 @@
   "eslintConfig": {
     "extends": "mourner"
   },
-  "keywords": []
+  "keywords": [
+    "ejs",
+    "template",
+    "engine"
+  ]
 }

@@ -1,7 +1,6 @@
 'use strict';
 
 exports.compile = compile;
-exports.compilePart = compilePart;
 
 const RE = /(<%%|%%>|<%=|<%-|<%_|<%#|<%|%>|-%>|_%>)/gm;
 const BREAK_RE = /^(\r\n|\r|\n)/;
@@ -56,7 +55,7 @@ function compilePart(ejs) {
             break;
         case '<%':
         case '<%_': code += '`;'; break;
-        case '<%=': code += '` + _escape(_str('; break;
+        case '<%=': code += '` + _esc(_str('; break;
         case '<%-': code += '` + _str(('; break;
         case '<%%': code += '<%'; break;
         case '%%>': code += '%>';
@@ -79,7 +78,7 @@ function compile(ejs, options = {}) {
     if (locals && locals.length) code += `const {${locals.join(', ')}} = ${localsName}; `;
     code += `let _out = ''; ${compilePart(ejs)} return _out;`;
 
-    const fn = new Function(localsName, '_escape', '_str', code);
+    const fn = new Function(localsName, '_esc', '_str', code);
     return data => fn.call(context, data, escape, stringify);
 }
 
