@@ -1,5 +1,5 @@
 {
-  "name": "yejs",
+  "name": "yeahjs",
   "version": "0.0.1",
   "description": "A tiny, modern implementation of EJS templates",
   "author": "Vladimir Agafonkin",
@@ -18,6 +18,9 @@
   "eslintConfig": {
     "extends": "mourner"
   },
+  "files": [
+    "index.js"
+  ],
   "keywords": [
     "ejs",
     "template",

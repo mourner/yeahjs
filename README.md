@@ -1,4 +1,4 @@
-# yejs
+# yeahjs
 
 A tiny, modern, fast implementation of EJS (Embedded JavaScript Templates). A nearly drop-in replacement for [ejs](https://ejs.co/) with a few [opinionated limitations](#compared-to-ejs).
 

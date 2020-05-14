@@ -11,8 +11,7 @@ const INCLUDE_RE = /include\(\s*(['"])([^\1]*)\1\s*\)/g;
 
 const defaultOptions = {
     escape: escapeXML,
-    localsName: 'locals',
-    locals: []
+    localsName: 'locals'
 };
 
 function compile(ejs, options = {}) {
