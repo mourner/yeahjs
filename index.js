@@ -1,6 +1,7 @@
 'use strict';
 
 exports.compile = compile;
+exports.compilePart = compilePart;
 
 const RE = /(<%%|%%>|<%=|<%-|<%_|<%#|<%|%>|-%>|_%>)/gm;
 const BREAK_RE = /^(\r\n|\r|\n)/;
@@ -14,28 +15,28 @@ const defaultOptions = {
     locals: []
 };
 
-function compile(ejs, options = {}) {
-    const {escape, locals, localsName, context} = Object.assign({}, defaultOptions, options);
-
+function compilePart(ejs) {
     let match, prev, open;
     let lastIndex = 0;
-    const out = '_out';
-    let code = '\'use strict\'; ';
-    if (locals && locals.length) code += `const {${locals.join(', ')}} = ${localsName}; `;
 
-    code += `let ${out} = \``;
+    let code = '_out += `';
+    RE.lastIndex = 0;
     do {
         match = RE.exec(ejs);
         const token = match && match[0];
 
-        let str = ejs.slice(lastIndex, match ? match.index : undefined);
-        if (token === '<%_') str = str.replace(W_RIGHT_RE, '');
-        if (prev === '_%>') str = str.replace(W_LEFT_RE, '');
-        if (prev === '-%>' || prev === '_%>') str = str.replace(BREAK_RE, '');
+        if (prev !== '<%#') {
+            let str = ejs.slice(lastIndex, match ? match.index : undefined);
 
-        if (prev !== '<%#') code += str
-            .replace('\\', '\\\\')
-            .replace('\r', '\\r');
+            if (token === '<%_') str = str.replace(W_RIGHT_RE, '');
+            if (prev === '_%>') str = str.replace(W_LEFT_RE, '');
+            if (prev === '-%>' || prev === '_%>') str = str.replace(BREAK_RE, '');
+            if (!open) {
+                str = str.replace('\\', '\\\\');
+                str = str.replace('\r', '\\r');
+            }
+            code += str;
+        }
 
         if (!token || token[0] === '<' && token[2] !== '%') {
             if (open) throw new Error(`Could not find matching close tag for ${open}.`);
@@ -49,7 +50,7 @@ function compile(ejs, options = {}) {
             prev === '<%=' ||
             prev === '<%-' ? '\n)) + `' :
             prev === '<%' ||
-            prev === '<%_' ? `\n${out} += \`` :
+            prev === '<%_' ? '\n_out += `' :
             prev === '<%#' ? '' : token;
             open = null;
             break;
@@ -66,10 +67,18 @@ function compile(ejs, options = {}) {
 
     } while (match);
 
-    code += `\`; return ${out};`;
-    RE.lastIndex = 0;
+    code += '`;';
 
-    // console.log(code);
+    return code;
+}
+
+function compile(ejs, options = {}) {
+    const {escape, locals, localsName, context} = Object.assign({}, defaultOptions, options);
+
+    let code = '\'use strict\'; ';
+    if (locals && locals.length) code += `const {${locals.join(', ')}} = ${localsName}; `;
+    code += `let _out = ''; ${compilePart(ejs)} return _out;`;
+
     const fn = new Function(localsName, '_escape', '_str', code);
     return data => fn.call(context, data, escape, stringify);
 }

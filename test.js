@@ -95,6 +95,7 @@ test('characters', (t) => {
     t.equal(compile(String.raw`\foo`)(), String.raw`\foo`, 'backslash');
     t.equal(compile('<ul><%locals.users.forEach(function(user){%><li><%=user.name%></li><%})%></ul>')({users}),
         '<ul><li>geddy</li><li>neil</li><li>alex</li></ul>', 'no whitespace');
+    t.equal(compile(String.raw`<%= "<p>foo</p>".match(/\<p>(.+)<\/p>/)[1] %>`)(), 'foo', 'regexps');
     t.end();
 });
 
