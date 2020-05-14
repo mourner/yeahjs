@@ -11,21 +11,23 @@ const INCLUDE_RE = /include\(\s*(['"])([^\1]*)\1\s*\)/g;
 
 const defaultOptions = {
     escape: escapeXML,
-    localsName: 'locals'
+    localsName: 'locals',
+    resolve: (parent, path) => path
 };
 
 function compile(ejs, options = {}) {
-    const {escape, locals, localsName, context, filename, include} = Object.assign({}, defaultOptions, options);
+    const {escape, locals, localsName, context, filename, read, resolve, cache} =
+        Object.assign({}, defaultOptions, options);
 
     let code = '\'use strict\'; ';
     if (locals && locals.length) code += `const {${locals.join(', ')}} = ${localsName}; `;
-    code += compilePart(ejs, filename, include);
+    code += compilePart(ejs, filename, read, resolve, cache || {});
 
     const fn = new Function(localsName, '_esc', '_str', code);
     return data => fn.call(context, data, escape, stringify);
 }
 
-function compilePart(ejs, filename, include) {
+function compilePart(ejs, filename, read, resolve, cache) {
     const originalLastIndex = RE.lastIndex;
     let lastIndex = RE.lastIndex = 0;
     let code = 'let _out = `';
@@ -39,11 +41,11 @@ function compilePart(ejs, filename, include) {
             if (!open) { // text data
                 if (token === '<%_') str = str.replace(W_RIGHT_RE, '');
                 if (prev === '_%>') str = str.replace(W_LEFT_RE, '');
-                if (prev === '-%>') str = str.replace(BREAK_RE, '');
+                else if (prev === '-%>') str = str.replace(BREAK_RE, '');
                 code += str.replace('\\', '\\\\').replace('\r', '\\r');
 
             } else { // JS
-                code += compileIncludes(str, filename, include);
+                code += compileIncludes(str, filename, read, resolve, cache);
             }
         }
 
@@ -82,19 +84,19 @@ function compilePart(ejs, filename, include) {
     return code;
 }
 
-function compileIncludes(js, filename, include) {
+function compileIncludes(js, filename, read, resolve, cache) {
     const originalLastIndex = INCLUDE_RE.lastIndex;
     let lastIndex = INCLUDE_RE.lastIndex = 0;
     let code = '';
     let match;
     while ((match = INCLUDE_RE.exec(js)) !== null) {
         const includePath = match[2];
-        if (!filename || !include)
-            throw new Error(`Found an include but filename or include option missing: ${includePath}`);
+        if (!read) throw new Error(`Found an include but read option missing: ${includePath}`);
 
-        const includeEJS = include(includePath, filename);
-        code += js.slice(lastIndex, match.index);
-        code += `(() => { ${compilePart(includeEJS, includePath, include)} })()`;
+        const key = resolve(filename, includePath);
+        const codeBefore = js.slice(lastIndex, match.index);
+        const includeCode = cache[key] = cache[key] || compilePart(read(key), key, read, resolve, cache);
+        code += `${codeBefore}(() => { ${includeCode} })()`;
         lastIndex = INCLUDE_RE.lastIndex;
     }
     code += js.slice(lastIndex);

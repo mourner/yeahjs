@@ -109,13 +109,22 @@ test('options', (t) => {
 });
 
 test('includes', (t) => {
-    function include(filename, parent) {
-        t.equal(parent, 'foo');
+    function resolve(parent, filename) {
+        t.equal(parent, 'foo', 'resolve parent');
+        t.equal(filename, 'yo', 'resolve filename');
+        return filename;
+    }
+    function read(filename) {
         return `<p><%= "HELLO ${filename}" %></p>`;
     }
+
     const tpl = '<div><%- include(\'yo\') %></div>';
-    t.equal(compile(tpl, {include, filename: 'foo'})(), '<div><p>HELLO yo</p></div>');
-    t.throws(() => compile(tpl, {include})(), /Found an include but filename or include option missing/);
-    t.throws(() => compile(tpl, {filename: 'foo'})(), /Found an include but filename or include option missing/);
+    const filename = 'foo';
+    const cache = {};
+    t.equal(compile(tpl, {resolve, read, filename, cache})(), '<div><p>HELLO yo</p></div>', 'include');
+    t.equal(JSON.stringify(cache), '{"yo":"let _out = `<p>` + _esc(_str( \\"HELLO yo\\" \\n)) + `</p>`; return _out;"}', 'cache');
+
+    t.throws(() => compile(tpl, {})(), /Found an include but read option missing/, 'missing option');
+
     t.end();
 });

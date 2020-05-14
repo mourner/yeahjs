@@ -29,6 +29,25 @@ const output = template({items: ['flour', 'water', 'salt']});
 
 - Strict mode only (no `with` keyword in compiled functions).
 - Only static-resolution includes (`include('header.ejs')`, but not `include(dir + file)`).
-- Caching and file reading not included — provide your own through the `include` option.
-- No delimiter customization yet (can't think of use cases for this).
-- No `async` templates yet.
+- File handling not included — provide your own through `read` and `resolve` options (see example below).
+- `cache` option accepts a simple object (`{}`).
+
+## To do
+
+- `async` templates.
+- Delimiter customization (not sure if it's needed).
+
+## File handling in Node.js
+
+```js
+const fs = require('fs');
+const path = require('path');
+const cache = {};
+
+const template = ejs.compile(`<%- include('../bar.html') %>`, {
+    filename: 'foo/foo.html',
+    resolve: (parent, filename) => path.join(parent, filename),
+    read: filename => fs.readFileSync(filename, 'utf8'),
+    cache
+});
+```
