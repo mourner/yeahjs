@@ -15,24 +15,15 @@ const defaultOptions = {
     locals: []
 };
 
-function compileIncludes(js, filename, include) {
-    const originalLastIndex = INCLUDE_RE.lastIndex;
-    let lastIndex = INCLUDE_RE.lastIndex = 0;
-    let code = '';
-    let match;
-    while ((match = INCLUDE_RE.exec(js)) !== null) {
-        const includePath = match[2];
-        if (!filename || !include)
-            throw new Error(`Found an include but filename or include option missing: ${includePath}`);
+function compile(ejs, options = {}) {
+    const {escape, locals, localsName, context, filename, include} = Object.assign({}, defaultOptions, options);
 
-        const includeEJS = include(includePath, filename);
-        code += js.slice(lastIndex, match.index);
-        code += `(() => { ${compilePart(includeEJS, includePath, include)} })()`;
-        lastIndex = INCLUDE_RE.lastIndex;
-    }
-    code += js.slice(lastIndex);
-    INCLUDE_RE.lastIndex = originalLastIndex;
-    return code;
+    let code = '\'use strict\'; ';
+    if (locals && locals.length) code += `const {${locals.join(', ')}} = ${localsName}; `;
+    code += compilePart(ejs, filename, include);
+
+    const fn = new Function(localsName, '_esc', '_str', code);
+    return data => fn.call(context, data, escape, stringify);
 }
 
 function compilePart(ejs, filename, include) {
@@ -92,15 +83,24 @@ function compilePart(ejs, filename, include) {
     return code;
 }
 
-function compile(ejs, options = {}) {
-    const {escape, locals, localsName, context, filename, include} = Object.assign({}, defaultOptions, options);
+function compileIncludes(js, filename, include) {
+    const originalLastIndex = INCLUDE_RE.lastIndex;
+    let lastIndex = INCLUDE_RE.lastIndex = 0;
+    let code = '';
+    let match;
+    while ((match = INCLUDE_RE.exec(js)) !== null) {
+        const includePath = match[2];
+        if (!filename || !include)
+            throw new Error(`Found an include but filename or include option missing: ${includePath}`);
 
-    let code = '\'use strict\'; ';
-    if (locals && locals.length) code += `const {${locals.join(', ')}} = ${localsName}; `;
-    code += compilePart(ejs, filename, include);
-
-    const fn = new Function(localsName, '_esc', '_str', code);
-    return data => fn.call(context, data, escape, stringify);
+        const includeEJS = include(includePath, filename);
+        code += js.slice(lastIndex, match.index);
+        code += `(() => { ${compilePart(includeEJS, includePath, include)} })()`;
+        lastIndex = INCLUDE_RE.lastIndex;
+    }
+    code += js.slice(lastIndex);
+    INCLUDE_RE.lastIndex = originalLastIndex;
+    return code;
 }
 
 function stringify(v) {
