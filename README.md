@@ -43,7 +43,7 @@ const cache = {};
 
 const template = ejs.compile(`<%- include('../bar.html') %>`, {
     filename: 'foo/foo.html',
-    resolve: (parent, filename) => path.join(parent, filename),
+    resolve: (parent, filename) => path.join(path.dirname(parent), filename),
     read: filename => fs.readFileSync(filename, 'utf8'),
     cache
 });

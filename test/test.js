@@ -1,6 +1,9 @@
 
+const fs = require('fs');
+const path = require('path');
 const {test} = require('tape');
-const {compile} = require('./index.js');
+
+const {compile} = require('../index.js');
 
 const users = [{name: 'Vlad'}, {name: 'Masha'}, {name: 'Dasha'}];
 
@@ -125,6 +128,21 @@ test('includes', (t) => {
     t.equal(JSON.stringify(cache), '{"yo":"let _out = `<p>` + _esc(_str( \\"HELLO yo\\" \\n)) + `</p>`; return _out;"}', 'cache');
 
     t.throws(() => compile(tpl, {})(), /Found an include but read option missing/, 'missing option');
+
+    t.end();
+});
+
+test('includes node', (t) => {
+    const read = file => fs.readFileSync(file, 'utf8');
+    const resolve = (parent, file) => path.join(path.dirname(parent), file);
+
+    const indexFile = path.join(__dirname, 'fixtures/index.ejs');
+    const index = compile(fs.readFileSync(indexFile, 'utf8'), {read, resolve, filename: indexFile});
+    t.equal(index(), '<p>(c) Vladimir Agafonkin</p>\n\n<h1>Oh my</h1>\n\n<h2>Hello</h2>\n');
+
+    const postFile = path.join(__dirname, 'fixtures/posts/post.ejs');
+    const post = compile(fs.readFileSync(postFile, 'utf8'), {read, resolve, filename: postFile});
+    t.equal(post(), '<p>(c) Vladimir Agafonkin</p>\n\n<h1>Oh my</h1>\n\n<p>Lorem ipsum</p>\n');
 
     t.end();
 });

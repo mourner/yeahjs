@@ -12,8 +12,8 @@
     "tape": "^5.0.0"
   },
   "scripts": {
-    "pretest": "eslint index.js test.js",
-    "test": "node test.js"
+    "pretest": "eslint index.js test/test.js",
+    "test": "node test/test.js"
   },
   "eslintConfig": {
     "extends": "mourner",
