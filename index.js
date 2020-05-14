@@ -2,11 +2,12 @@
 
 exports.compile = compile;
 
-const RE = /(<%%|%%>|<%=|<%-|<%_|<%#|<%|%>|-%>|_%>)/gm;
+const RE = /(<%%|%%>|<%=|<%-|<%_|<%#|<%|%>|-%>|_%>)/g;
+const ESCAPE_RE = /[&<>'"]/g;
 const BREAK_RE = /^(\r\n|\r|\n)/;
-const ESCAPE_RE = /[&<>'"]/gm;
-const W_LEFT_RE = /^[ \t]+/;
+const W_LEFT_RE = /^[ \t]+(\r\n|\r|\n)/;
 const W_RIGHT_RE = /[ \t]+$/;
+const INCLUDE_RE = /include\(\s*(['"])([^\1]*)\1\s*\)/g;
 
 const defaultOptions = {
     escape: escapeXML,
@@ -14,27 +15,46 @@ const defaultOptions = {
     locals: []
 };
 
-function compilePart(ejs) {
-    let match, prev, open;
-    let lastIndex = 0;
+function compileIncludes(js, filename, include) {
+    const originalLastIndex = INCLUDE_RE.lastIndex;
+    let lastIndex = INCLUDE_RE.lastIndex = 0;
+    let code = '';
+    let match;
+    while ((match = INCLUDE_RE.exec(js)) !== null) {
+        const includePath = match[2];
+        if (!filename || !include)
+            throw new Error(`Found an include but filename or include option missing: ${includePath}`);
 
-    let code = '_out += `';
-    RE.lastIndex = 0;
+        const includeEJS = include(includePath, filename);
+        code += js.slice(lastIndex, match.index);
+        code += `(() => { ${compilePart(includeEJS, includePath, include)} })()`;
+        lastIndex = INCLUDE_RE.lastIndex;
+    }
+    code += js.slice(lastIndex);
+    INCLUDE_RE.lastIndex = originalLastIndex;
+    return code;
+}
+
+function compilePart(ejs, filename, include) {
+    const originalLastIndex = RE.lastIndex;
+    let lastIndex = RE.lastIndex = 0;
+    let code = 'let _out = `';
+    let match, prev, open;
     do {
         match = RE.exec(ejs);
         const token = match && match[0];
 
         if (prev !== '<%#') {
             let str = ejs.slice(lastIndex, match ? match.index : undefined);
+            if (!open) { // text data
+                if (token === '<%_') str = str.replace(W_RIGHT_RE, '');
+                if (prev === '_%>') str = str.replace(W_LEFT_RE, '');
+                if (prev === '-%>') str = str.replace(BREAK_RE, '');
+                code += str.replace('\\', '\\\\').replace('\r', '\\r');
 
-            if (token === '<%_') str = str.replace(W_RIGHT_RE, '');
-            if (prev === '_%>') str = str.replace(W_LEFT_RE, '');
-            if (prev === '-%>' || prev === '_%>') str = str.replace(BREAK_RE, '');
-            if (!open) {
-                str = str.replace('\\', '\\\\');
-                str = str.replace('\r', '\\r');
+            } else { // JS
+                code += compileIncludes(str, filename, include);
             }
-            code += str;
         }
 
         if (!token || token[0] === '<' && token[2] !== '%') {
@@ -66,17 +86,18 @@ function compilePart(ejs) {
 
     } while (match);
 
-    code += '`;';
+    code += '`; return _out;';
+    RE.lastIndex = originalLastIndex;
 
     return code;
 }
 
 function compile(ejs, options = {}) {
-    const {escape, locals, localsName, context} = Object.assign({}, defaultOptions, options);
+    const {escape, locals, localsName, context, filename, include} = Object.assign({}, defaultOptions, options);
 
     let code = '\'use strict\'; ';
     if (locals && locals.length) code += `const {${locals.join(', ')}} = ${localsName}; `;
-    code += `let _out = ''; ${compilePart(ejs)} return _out;`;
+    code += compilePart(ejs, filename, include);
 
     const fn = new Function(localsName, '_esc', '_str', code);
     return data => fn.call(context, data, escape, stringify);

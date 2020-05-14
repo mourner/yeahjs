@@ -107,3 +107,15 @@ test('options', (t) => {
     t.equal(compile('<%= locals.name %>', {escape})({name: 'Vlad\'s'}), 'VLAD\'S', 'escape');
     t.end();
 });
+
+test('includes', (t) => {
+    function include(filename, parent) {
+        t.equal(parent, 'foo');
+        return `<p><%= "HELLO ${filename}" %></p>`;
+    }
+    const tpl = '<div><%- include(\'yo\') %></div>';
+    t.equal(compile(tpl, {include, filename: 'foo'})(), '<div><p>HELLO yo</p></div>');
+    t.throws(() => compile(tpl, {include})(), /Found an include but filename or include option missing/);
+    t.throws(() => compile(tpl, {filename: 'foo'})(), /Found an include but filename or include option missing/);
+    t.end();
+});
