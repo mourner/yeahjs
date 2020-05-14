@@ -1,0 +1,22 @@
+{
+  "name": "yeahjs",
+  "version": "0.0.0",
+  "description": "A tiny, modern implementation of EJS templates",
+  "author": "Vladimir Agafonkin",
+  "license": "ISC",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^7.0.0",
+    "eslint-config-mourner": "^3.0.0",
+    "tape": "^5.0.0"
+  },
+  "scripts": {
+    "pretest": "eslint index.js test.js",
+    "test": "node test.js"
+  },
+  "eslintConfig": {
+    "extends": "mourner"
+  },
+  "keywords": []
+}
