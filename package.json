@@ -1,6 +1,6 @@
 {
   "name": "yejs",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "A tiny, modern implementation of EJS templates",
   "author": "Vladimir Agafonkin",
   "license": "ISC",
