@@ -1,23 +1,31 @@
 # yejs
 
-A tiny, modern, fast implementation of EJS (Embedded JavaScript Templates).
+A tiny, modern, fast implementation of EJS (Embedded JavaScript Templates). A nearly drop-in replacement for [ejs](https://ejs.co/) with a few [opinionated limitations](#compared-to-ejs).
 
-```js
-const template = yejs.compile(`<ul>
+## Example
+
+```ejs
+<ul>
 <% for (let word of locals.items) { -%>
   <li><%= word %></li>
 <% } -%>
-</ul>`);
-
-const output = template({items: ['flour', 'water', 'salt', 'yeast']});
-// <ul>
-//   <li>flour</li>
-//   <li>water</li>
-//   <li>salt</li>
-// </ul>
+</ul>
 ```
 
-Designed to be a nearly drop-in replacement for [ejs](https://ejs.co/), with the following limitations:
+```js
+const template = yejs.compile(ejs);
+const output = template({items: ['flour', 'water', 'salt']});
+```
+
+```html
+<ul>
+  <li>flour</li>
+  <li>water</li>
+  <li>salt</li>
+</ul>
+```
+
+## Compared to `ejs`
 
 - Strict mode only (no `with` keyword in compiled functions).
 - Only static-resolution includes (`include('header.ejs')`, but not `include(dir + file)`).
