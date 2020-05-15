@@ -47,6 +47,7 @@ function compilePart(ejs, filename, read, resolve, cache) {
                 if (token === '<%_') str = str.replace(W_RIGHT_RE, '');
                 if (prev === '_%>') str = str.replace(W_LEFT_RE, '');
                 else if (prev === '-%>') str = str.replace(BREAK_RE, '');
+
                 code += str.replace('\\', '\\\\').replace('\r', '\\r');
 
             } else { // JS
@@ -63,10 +64,8 @@ function compilePart(ejs, filename, read, resolve, cache) {
         case '%>':
         case '_%>':
         case '-%>': code +=
-            prev === '<%=' ||
-            prev === '<%-' ? '\n)) + `' :
-            prev === '<%' ||
-            prev === '<%_' ? '\n_out += `' :
+            prev === '<%=' || prev === '<%-' ? '\n)) + `' :
+            prev === '<%' || prev === '<%_' ? '\n_out += `' :
             prev === '<%#' ? '' : token;
             open = null;
             break;
@@ -99,9 +98,10 @@ function compileIncludes(js, filename, read, resolve, cache) {
         if (!read) throw new Error(`Found an include but read option missing: ${includePath}`);
 
         const key = resolve(filename, includePath);
-        const codeBefore = js.slice(lastIndex, match.index);
         const includeCode = cache[key] = cache[key] || compilePart(read(key), key, read, resolve, cache);
-        code += `${codeBefore}(() => { ${includeCode} })()`;
+
+        code += `${js.slice(lastIndex, match.index)}(() => { ${includeCode} })()`;
+
         lastIndex = INCLUDE_RE.lastIndex;
     }
     code += js.slice(lastIndex);

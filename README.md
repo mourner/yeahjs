@@ -36,39 +36,51 @@ There are a few key differences that allow `yeahjs` to be so small and fast:
 
 - **Strict mode** only (no `with` keyword in compiled functions).
 - Only **static path includes** (`include('header.ejs')`, but not `include(dir + file)`).
-- Pluggable file handling — it's not included, but you can provide it with `read` and `resolve` options (see [example](#file-handling)).
+- File handling **not included** — provide it with `read` and `resolve` options (see [example](#file-handling)).
 
-Otherwise `yeahjs` identical output to `ejs`, passing all compilation and rendering tests.
+Otherwise `yeahjs` produces identical output to `ejs`, passing all compilation and rendering tests.
 
-## Options
+## Usage
 
 ```js
 const template = yeahjs.compile(ejs, options);
 ````
 
-- `localsName`: the namespace to use for accessing template data (`locals` by default).
-- `locals`: an array of variables to make accessible directly (e.g. `['foo']` will allow `<%= foo %>` instead of `<%= locals.foo %>`).
+Returns a function of the form `(data) => content`. Options:
+
+- `localsName`: the namespace to use for accessing template data (`locals` by default for `<%= locals.foo %>`).
+- `locals`: an array of variables to access directly (e.g. `['foo']` will allow `<%= foo %>` instead of `<%= locals.foo %>`).
 - `context`: an object to use as `this` in templates (`null` by default).
 - `escape`: a custom escaping function for values inside `<%= ... %>` (escapes XML by default).
-- `async`: if `true`, generates an async function to make it possible to use `await` inside templates (`false` by default)
+- `async`: if `true`, generates an async function to make it possible to use `await` inside templates (`false` by default).
 - `filename`: the file name of the template if present (used for resolving includes).
 - `read`: a function of the form `(filename) => content` for reading includes (e.g. from file system in Node).
-- `resolve`: a function of the form `(parentPath, includePath)` for resolving include paths (e.g. use `path.join(path.dirname(parent), filename)` in Node).
+- `resolve`: a function of the form `(parentPath, includePath) => path` for resolving include paths.
 - `cache`: an object to cache compiled includes in for faster compilation; reuse between `compile` runs for best performance (`{}` by default).
+
+## EJS cheatsheet
+
+- `<%= value %>`: output the value (escaped).
+- `<%- value %>`: output the value (raw).
+- `<% code %>`: use arbitrary JavaScript.
+- `<%_ code %>`: use arbitrary JavaScript and strip whitespace on the same line before the tag.
+- `... _%>`: strip whitespace and a single line break on the same line after the tag.
+- `... -%>`: strip a single line break immediately after the tag.
+- `<%%`, `%%>`: output literal `<%` or `%>`.
+- `<%# comment %>`: comment (ignored).
+- `<%- include('path/to/template.ejs') %>`: include another template.
 
 ## File handling
 
 An example of using `read`, `resolve` and `filename` options in Node.js to process includes:
 
 ```js
-const fs = require('fs');
-const path = require('path');
-const cache = {};
+const {readFileSync} = require('fs');
+const {join, dirname} = require('path');
 
-const template = ejs.compile(`<%- include('../bar.html') %>`, {
+const template = yeahjs.compile(`<%- include('../bar.html') %>`, {
     filename: 'foo/foo.html',
-    resolve: (parent, filename) => path.join(path.dirname(parent), filename),
-    read: filename => fs.readFileSync(filename, 'utf8'),
-    cache
+    resolve: (parent, filename) => join(dirname(parent), filename),
+    read: filename => readFileSync(filename, 'utf8')
 });
 ```
