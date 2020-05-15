@@ -7,7 +7,7 @@ const ESCAPE_RE = /[&<>'"]/g;
 const BREAK_RE = /^(\r\n|\r|\n)/;
 const W_LEFT_RE = /^[ \t]+(\r\n|\r|\n)/;
 const W_RIGHT_RE = /[ \t]+$/;
-const INCLUDE_RE = /include\(\s*(['"])([^\1]*)\1\s*\)/g;
+const INCLUDE_RE = /include\(\s*(['"])(.+?)\1\s*(,\s*({.+?})\s*)?\)/g;
 
 const defaultOptions = {
     escape: escapeXML,
@@ -18,25 +18,27 @@ const defaultOptions = {
 let AsyncFunction;
 try { AsyncFunction = (new Function('return (async () => {}).constructor;'))(); } catch (e) { /* ignore */ }
 
-function compile(ejs, options = {}) {
-    const {escape, locals, localsName, context, filename, read, resolve, cache, async} =
-        Object.assign({}, defaultOptions, options);
+function compile(ejs, options) {
+    options = Object.assign({cache: {}}, defaultOptions, options);
+    const {escape, localsName, context, filename, async} = options;
 
     if (async && !AsyncFunction) throw new Error('This environment does not support async/await.');
 
-    let code = '\'use strict\'; ';
-    if (locals && locals.length) code += `const {${locals.join(', ')}} = ${localsName}; `;
-    code += compilePart(ejs, filename, read, resolve, cache || {});
+    const code = `'use strict'; ${compilePart(ejs, filename, options)}`;
 
     const fn = new (async ? AsyncFunction : Function)(localsName, '_esc', '_str', code);
-    return data => fn.call(context, data, escape, stringify);
+    return data => fn.call(context, data || null, escape, stringify);
 }
 
-function compilePart(ejs, filename, read, resolve, cache) {
+function compilePart(ejs, filename, options) {
+    const {locals, localsName} = options;
+    let code = locals && locals.length ? `const {${locals.join(', ')}} = ${localsName}; ` : '';
+    code += 'let _out = `';
+
     const originalLastIndex = RE.lastIndex;
     let lastIndex = RE.lastIndex = 0;
-    let code = 'let _out = `';
     let match, prev, open;
+
     do {
         match = RE.exec(ejs);
         const token = match && match[0];
@@ -51,7 +53,7 @@ function compilePart(ejs, filename, read, resolve, cache) {
                 code += str.replace('\\', '\\\\').replace('\r', '\\r');
 
             } else { // JS
-                code += compileIncludes(str, filename, read, resolve, cache);
+                code += compileIncludes(str, filename, options);
             }
         }
 
@@ -88,24 +90,32 @@ function compilePart(ejs, filename, read, resolve, cache) {
     return code;
 }
 
-function compileIncludes(js, filename, read, resolve, cache) {
+function compileIncludes(js, filename, options) {
+    const {read, resolve, cache, localsName} = options;
+    let code = '';
+
     const originalLastIndex = INCLUDE_RE.lastIndex;
     let lastIndex = INCLUDE_RE.lastIndex = 0;
-    let code = '';
     let match;
+
     while ((match = INCLUDE_RE.exec(js)) !== null) {
         const includePath = match[2];
+        const includeData = match[4];
         if (!read) throw new Error(`Found an include but read option missing: ${includePath}`);
 
+        const before = js.slice(lastIndex, match.index);
         const key = resolve(filename, includePath);
-        const includeCode = cache[key] = cache[key] || compilePart(read(key), key, read, resolve, cache);
+        const includeCode = cache[key] = cache[key] || compilePart(read(key), key, options);
+        const includeLocals = includeData ? `Object.assign(Object.create(${localsName}), ${includeData})` : '';
 
-        code += `${js.slice(lastIndex, match.index)}(() => { ${includeCode} })()`;
+        code += `${before}((${includeLocals ? localsName : ''}) => { ${includeCode} })(${includeLocals})`;
 
         lastIndex = INCLUDE_RE.lastIndex;
     }
+
     code += js.slice(lastIndex);
     INCLUDE_RE.lastIndex = originalLastIndex;
+
     return code;
 }
 

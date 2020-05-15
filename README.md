@@ -38,7 +38,7 @@ There are a few key differences that allow `yeahjs` to be so small and fast:
 - Only **static path includes** (`include('header.ejs')`, but not `include(dir + file)`).
 - File handling **not included** — provide it with `read` and `resolve` options (see [example](#file-handling)).
 
-Otherwise `yeahjs` produces identical output to `ejs`, passing all compilation and rendering tests.
+Otherwise `yeahjs` produces identical output to `ejs`.
 
 ## Usage
 
@@ -68,7 +68,7 @@ Returns a function of the form `(data) => content`. Options:
 - `... -%>`: strip a single line break immediately after the tag.
 - `<%%`, `%%>`: output literal `<%` or `%>`.
 - `<%# comment %>`: comment (ignored).
-- `<%- include('path/to/template.ejs') %>`: include another template.
+- `<%- include('path/to/template.ejs', {foo: bar}) %>`: include another template, optionally passing data.
 
 ## File handling
 
