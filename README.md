@@ -40,6 +40,18 @@ There are a few key differences that allow `yeahjs` to be so small and fast:
 
 Otherwise `yeahjs` produces identical output to `ejs`.
 
+### Strict mode only
+
+The `with` keyword has a very significant impact on performance in JavaScript, in addition to introducing hard to debug issues. Limiting `yeahjs` to strict mode makes sure it's always as fast and predictable as possible.
+
+### Static path includes
+
+Static path includes make sure `yeahjs` can fully compile templates with includes at `compile` time, avoiding lazy compilation during template evaluation. This makes evaluation faster and more predictable.
+
+### Custom file handling
+
+Not including any file-system-specific code makes `yeahjs` environment-agnostic, having the same bundle for both Node and the browsers and giving full control over how includes get read and resolved.
+
 ## Usage
 
 ```js
