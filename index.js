@@ -16,17 +16,22 @@ const defaultOptions = {
 };
 
 let AsyncFunction;
-try { AsyncFunction = (new Function('return (async () => {}).constructor;'))(); } catch (e) { /* ignore */ }
 
 function compile(ejs, options) {
     options = Object.assign({cache: {}}, defaultOptions, options);
     const {escape, localsName, context, filename, async} = options;
 
-    if (async && !AsyncFunction) throw new Error('This environment does not support async/await.');
-
     const code = `'use strict'; ${compilePart(ejs, filename, options)}`;
 
+    if (async && !AsyncFunction) {
+        try {
+            AsyncFunction = (new Function('return (async () => {}).constructor'))();
+        } catch (e) {
+            throw new Error('This environment does not support async/await.');
+        }
+    }
     const fn = new (async ? AsyncFunction : Function)(localsName, '_esc', '_str', code);
+
     return data => fn.call(context, data || null, escape, stringify);
 }
 
