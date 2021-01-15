@@ -18,7 +18,9 @@ A tiny, modern, fast implementation of EJS (Embedded JavaScript Templates). A ne
 ```
 
 ```js
-const template = yeahjs.compile(ejs);
+import {compile} from 'yeahjs';
+
+const template = compile(ejs);
 const output = template({items: ['flour', 'water', 'salt']});
 ```
 
@@ -55,7 +57,9 @@ Not including any file-system-specific code makes `yeahjs` environment-agnostic,
 ## Usage
 
 ```js
-const template = yeahjs.compile(ejs, options);
+import {compile} from 'yeahjs';
+
+const template = compile(ejs, options);
 ````
 
 Returns a function of the form `(data) => content`. Options:
@@ -87,8 +91,8 @@ Returns a function of the form `(data) => content`. Options:
 An example of using `read`, `resolve` and `filename` options in Node.js to process includes:
 
 ```js
-const {readFileSync} = require('fs');
-const {join, dirname} = require('path');
+import {readFileSync} from 'fs';
+import {join, dirname} from 'path';
 
 const template = yeahjs.compile(`<%- include('../bar.html') %>`, {
     filename: 'foo/foo.html',

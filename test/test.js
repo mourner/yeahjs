@@ -1,9 +1,12 @@
 
-const fs = require('fs');
-const path = require('path');
-const {test} = require('tape');
+import fs from 'fs';
+import {test} from 'tape';
+import {join, dirname} from 'path';
+import {fileURLToPath} from 'url';
 
-const {compile} = require('../index.js');
+import {compile} from '../index.js';
+
+const fixturesDir = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 
 const users = [{name: 'Vlad'}, {name: 'Masha'}, {name: 'Dasha'}];
 
@@ -134,13 +137,13 @@ test('includes', (t) => {
 
 test('includes in node', (t) => {
     const read = file => fs.readFileSync(file, 'utf8');
-    const resolve = (parent, file) => path.join(path.dirname(parent), file);
+    const resolve = (parent, file) => join(dirname(parent), file);
 
-    const indexFile = path.join(__dirname, 'fixtures/index.ejs');
+    const indexFile = join(fixturesDir, 'index.ejs');
     const index = compile(fs.readFileSync(indexFile, 'utf8'), {read, resolve, filename: indexFile});
     t.equal(index(), '<p>(c) Vladimir Agafonkin</p>\n\n<h1>Oh my</h1>\n\n<h2>Hello</h2>\n', 'node resolve');
 
-    const postFile = path.join(__dirname, 'fixtures/posts/post.ejs');
+    const postFile = join(fixturesDir, 'posts/post.ejs');
     const post = compile(fs.readFileSync(postFile, 'utf8'), {read, resolve, filename: postFile});
     t.equal(post(), '<p>(c) Vladimir Agafonkin</p>\n\n<h1>Oh my</h1>\n\n<p>Lorem ipsum</p>\n', 'node resolve 2');
 

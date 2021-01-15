@@ -4,12 +4,14 @@
   "description": "A tiny, modern implementation of EJS templates",
   "author": "Vladimir Agafonkin",
   "license": "ISC",
+  "type": "module",
   "main": "index.js",
+  "exports": "./index.js",
   "dependencies": {},
   "devDependencies": {
-    "eslint": "^7.0.0",
+    "eslint": "^7.17.0",
     "eslint-config-mourner": "^3.0.0",
-    "tape": "^5.0.0"
+    "tape": "^5.1.1"
   },
   "scripts": {
     "pretest": "eslint index.js test/test.js",
@@ -18,12 +20,15 @@
   "eslintConfig": {
     "extends": "mourner",
     "parserOptions": {
-      "ecmaVersion": 2018
+      "ecmaVersion": 2020
     }
   },
   "files": [
     "index.js"
   ],
+  "engines": {
+    "node": ">= 12.17.0"
+  },
   "keywords": [
     "ejs",
     "template",

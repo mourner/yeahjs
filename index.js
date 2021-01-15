@@ -1,6 +1,3 @@
-'use strict';
-
-exports.compile = compile;
 
 const RE = /(<%%|%%>|<%=|<%-|<%_|<%#|<%|%>|-%>|_%>)/g;
 const ESCAPE_RE = /[&<>'"]/g;
@@ -17,7 +14,7 @@ const defaultOptions = {
 
 let AsyncFunction;
 
-function compile(ejs, options) {
+export function compile(ejs, options) {
     options = Object.assign({cache: {}}, defaultOptions, options);
     const {escape, localsName, context, filename, async} = options;
 
