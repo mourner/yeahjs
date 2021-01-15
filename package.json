@@ -33,5 +33,9 @@
     "ejs",
     "template",
     "engine"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mourner/yeahjs"
+  }
 }
