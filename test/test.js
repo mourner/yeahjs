@@ -1,12 +1,8 @@
 
 import fs from 'fs';
 import {test} from 'tape';
-import {join, dirname} from 'path';
-import {fileURLToPath} from 'url';
 
 import {compile} from '../index.js';
-
-const fixturesDir = join(dirname(fileURLToPath(import.meta.url)), 'fixtures');
 
 const users = [{name: 'Vlad'}, {name: 'Masha'}, {name: 'Dasha'}];
 
@@ -137,13 +133,13 @@ test('includes', (t) => {
 
 test('includes in node', (t) => {
     const read = file => fs.readFileSync(file, 'utf8');
-    const resolve = (parent, file) => join(dirname(parent), file);
+    const resolve = (parent, file) => new URL(file, parent);
 
-    const indexFile = join(fixturesDir, 'index.ejs');
+    const indexFile = new URL('./fixtures/index.ejs', import.meta.url);
     const index = compile(fs.readFileSync(indexFile, 'utf8'), {read, resolve, filename: indexFile});
     t.equal(index(), '<p>(c) Vladimir Agafonkin</p>\n\n<h1>Oh my</h1>\n\n<h2>Hello</h2>\n', 'node resolve');
 
-    const postFile = join(fixturesDir, 'posts/post.ejs');
+    const postFile = new URL('./fixtures/posts/post.ejs', import.meta.url);
     const post = compile(fs.readFileSync(postFile, 'utf8'), {read, resolve, filename: postFile});
     t.equal(post(), '<p>(c) Vladimir Agafonkin</p>\n\n<h1>Oh my</h1>\n\n<p>Lorem ipsum</p>\n', 'node resolve 2');
 
