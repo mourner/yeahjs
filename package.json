@@ -7,15 +7,13 @@
   "type": "module",
   "main": "index.js",
   "exports": "./index.js",
-  "dependencies": {},
   "devDependencies": {
     "eslint": "^8.38.0",
-    "eslint-config-mourner": "^3.0.0",
-    "tape": "^5.6.3"
+    "eslint-config-mourner": "^3.0.0"
   },
   "scripts": {
     "pretest": "eslint index.js test/test.js",
-    "test": "node test/test.js"
+    "test": "node --test --test-reporter spec test/test.js"
   },
   "eslintConfig": {
     "extends": "mourner",
@@ -26,9 +24,6 @@
   "files": [
     "index.js"
   ],
-  "engines": {
-    "node": ">= 12.17.0"
-  },
   "keywords": [
     "ejs",
     "template",
