@@ -8,18 +8,12 @@
   "main": "index.js",
   "exports": "./index.js",
   "devDependencies": {
-    "eslint": "^8.38.0",
-    "eslint-config-mourner": "^3.0.0"
+    "eslint": "^9.20.1",
+    "eslint-config-mourner": "^4.0.2"
   },
   "scripts": {
     "pretest": "eslint index.js test/test.js",
     "test": "node --test --test-reporter spec test/test.js"
-  },
-  "eslintConfig": {
-    "extends": "mourner",
-    "parserOptions": {
-      "ecmaVersion": 2020
-    }
   },
   "files": [
     "index.js"

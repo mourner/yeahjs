@@ -23,7 +23,7 @@ export function compile(ejs, options) {
     if (async && !AsyncFunction) {
         try {
             AsyncFunction = (new Function('return (async () => {}).constructor'))();
-        } catch (e) {
+        } catch {
             throw new Error('This environment does not support async/await.');
         }
     }
