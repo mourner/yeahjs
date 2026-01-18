@@ -1,6 +1,6 @@
 {
   "name": "yeahjs",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A tiny, modern implementation of EJS templates",
   "author": "Vladimir Agafonkin",
   "license": "ISC",
