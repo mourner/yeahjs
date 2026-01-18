@@ -92,6 +92,11 @@ test('characters', () => {
     assert.equal(compile('<ul><%locals.users.forEach(function(user){%><li><%=user.name%></li><%})%></ul>')({users}),
         '<ul><li>Vlad</li><li>Masha</li><li>Dasha</li></ul>', 'no whitespace');
     assert.equal(compile(String.raw`<%= "<p>foo</p>".match(/\<p>(.+)<\/p>/)[1] %>`)(), 'foo', 'regexps');
+    /* eslint-disable no-template-curly-in-string */
+    assert.equal(compile('const greeting = `Hello ${<%- JSON.stringify(locals.name) %>}!`;')({name: 'Alice'}),
+        'const greeting = `Hello ${"Alice"}!`;', 'backticks and placeholders');
+    assert.equal(compile('`backtick` and ${placeholder}')(), '`backtick` and ${placeholder}', 'literal backticks and placeholders');
+    /* eslint-enable no-template-curly-in-string */
 });
 
 test('options', () => {

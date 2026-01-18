@@ -52,7 +52,7 @@ function compilePart(ejs, filename, options) {
                 if (prev === '_%>') str = str.replace(W_LEFT_RE, '');
                 else if (prev === '-%>') str = str.replace(BREAK_RE, '');
 
-                code += str.replace('\\', '\\\\').replace('\r', '\\r');
+                code += str.replace(/\\/g, '\\\\').replace(/\r/g, '\\r').replace(/`/g, '\\`').replace(/\${/g, '\\${');
 
             } else { // JS
                 code += compileIncludes(str, filename, options);
