@@ -8,8 +8,8 @@
   "main": "index.js",
   "exports": "./index.js",
   "devDependencies": {
-    "eslint": "^9.20.1",
-    "eslint-config-mourner": "^4.0.2"
+    "eslint": "^9.39.2",
+    "eslint-config-mourner": "^4.1.0"
   },
   "scripts": {
     "pretest": "eslint index.js test/test.js",
