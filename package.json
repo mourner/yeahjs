@@ -8,12 +8,12 @@
   "main": "index.js",
   "exports": "./index.js",
   "devDependencies": {
-    "eslint": "^9.39.2",
+    "eslint": "^10.3.0",
     "eslint-config-mourner": "^4.1.0"
   },
   "scripts": {
     "pretest": "eslint index.js test/test.js",
-    "test": "node --test --test-reporter spec test/test.js"
+    "test": "node --test"
   },
   "files": [
     "index.js"
