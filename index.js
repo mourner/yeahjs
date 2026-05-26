@@ -46,7 +46,7 @@ const defaultOptions = {
  * @template {Options} [O = Options]
  * @param {string} ejs
  * @param {O} [options]
- * @returns {(data?: Record<string, unknown>) => O extends {async: true} ? Promise<string> : string}
+ * @returns {(data?: unknown) => O extends {async: true} ? Promise<string> : string}
  */
 export function compile(ejs, options) {
     /** @type {ResolvedOptions} */
