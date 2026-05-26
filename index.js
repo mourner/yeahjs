@@ -7,30 +7,63 @@ const W_RIGHT_RE = /[ \t]+$/;
 const TPL_ESC_RE = /[\\`\r]|\$\{/g;
 const INCLUDE_RE = /include\(\s*(['"])(.+?)\1\s*(,\s*({.+?})\s*)?\)/g;
 
-const tplEscapes = {'\\': '\\\\', '`': '\\`', '\r': '\\r', '${': '\\${'};
-const escapeTpl = c => tplEscapes[c];
+const tplEscapes = /** @type {const} */ ({'\\': '\\\\', '`': '\\`', '\r': '\\r', '${': '\\${'});
+/** @param {string} c */
+const escapeTpl = c => tplEscapes[/** @type {keyof typeof tplEscapes} */ (c)];
 
-const xmlEscapes = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '\'': '&apos;', '"': '&quot;'};
-const escapeChar = c => xmlEscapes[c];
+const xmlEscapes = /** @type {const} */ ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '\'': '&apos;', '"': '&quot;'});
+/** @param {string} c */
+const escapeChar = c => xmlEscapes[/** @type {keyof typeof xmlEscapes} */ (c)];
 
-const AsyncFunction = (async () => {}).constructor;
+const AsyncFunction = /** @type {FunctionConstructor} */ (/** @type {unknown} */ ((async () => {}).constructor));
 
+/**
+ * @typedef {Object} Options
+ * @property {string} [localsName] Namespace for template data (default `'locals'`).
+ * @property {string[]} [locals] Variables to access directly inside templates.
+ * @property {unknown} [context] Value used as `this` in templates (default `null`).
+ * @property {(value: string) => string} [escape] Custom escape function for `<%= ... %>` (defaults to XML-escaping).
+ * @property {boolean} [async] Compile to an async function so `await` can be used (default `false`).
+ * @property {string} [filename] Template file name, used to resolve includes.
+ * @property {(filename: string) => string} [read] Reader for include contents.
+ * @property {(parentPath: string | undefined, includePath: string) => string} [resolve] Include path resolver (defaults to identity on the include path).
+ * @property {Record<string, string>} [cache] Cache of compiled include bodies (default `{}`).
+ */
+
+/**
+ * @typedef {Options & Required<Pick<Options, 'escape' | 'localsName' | 'resolve' | 'cache'>>} ResolvedOptions
+ */
+
+/** @type {Required<Pick<Options, 'escape' | 'localsName' | 'resolve'>>} */
 const defaultOptions = {
     escape: escapeXML,
     localsName: 'locals',
     resolve: (_, path) => path
 };
 
+/**
+ * Compile an EJS template string into a render function.
+ * @template {Options} [O = Options]
+ * @param {string} ejs
+ * @param {O} [options]
+ * @returns {(data?: Record<string, unknown>) => O extends {async: true} ? Promise<string> : string}
+ */
 export function compile(ejs, options) {
-    options = {cache: {}, ...defaultOptions, ...options};
-    const {escape, localsName, context, filename, async} = options;
+    /** @type {ResolvedOptions} */
+    const opts = {cache: {}, ...defaultOptions, ...options};
+    const {escape, context, filename, localsName, async} = opts;
 
-    const code = `'use strict'; ${compilePart(ejs, filename, options)}`;
+    const code = `'use strict'; ${compilePart(ejs, filename, opts)}`;
     const fn = new (async ? AsyncFunction : Function)(localsName, '_esc', '_str', code);
 
     return data => fn.call(context, data ?? null, escape, stringify);
 }
 
+/**
+ * @param {string} ejs
+ * @param {string | undefined} filename
+ * @param {ResolvedOptions} options
+ */
 function compilePart(ejs, filename, options) {
     const {locals, localsName} = options;
     let code = locals?.length ? `const {${locals.join(', ')}} = ${localsName}; ` : '';
@@ -81,7 +114,7 @@ function compilePart(ejs, filename, options) {
         }
 
         prev = token;
-        if (match) lastIndex = match.index + token.length;
+        if (match) lastIndex = match.index + /** @type {string} */ (token).length;
 
     } while (match);
 
@@ -90,8 +123,13 @@ function compilePart(ejs, filename, options) {
     return code;
 }
 
+/**
+ * @param {string} js
+ * @param {string | undefined} filename
+ * @param {ResolvedOptions} options
+ */
 function compileIncludes(js, filename, options) {
-    const {read, resolve, cache, localsName} = options;
+    const {read, localsName, resolve, cache} = options;
     let code = '';
     let lastIndex = 0;
 
@@ -110,10 +148,12 @@ function compileIncludes(js, filename, options) {
     return code + js.slice(lastIndex);
 }
 
+/** @param {unknown} v */
 function stringify(v) {
     return v == null ? '' : String(v);
 }
 
+/** @param {string} xml */
 function escapeXML(xml) {
     return xml.replace(ESCAPE_RE, escapeChar);
 }

@@ -7,16 +7,20 @@
   "type": "module",
   "main": "index.js",
   "exports": "./index.js",
+  "types": "./index.d.ts",
   "devDependencies": {
-    "eslint": "^10.3.0",
-    "eslint-config-mourner": "^4.1.0"
+    "eslint": "^10.4.0",
+    "eslint-config-mourner": "^4.1.0",
+    "typescript": "^6.0.3"
   },
   "scripts": {
-    "pretest": "eslint index.js test/test.js",
-    "test": "node --test"
+    "pretest": "eslint index.js test/test.js && tsc",
+    "test": "node --test",
+    "prepublishOnly": "npm test"
   },
   "files": [
-    "index.js"
+    "index.js",
+    "index.d.ts"
   ],
   "keywords": [
     "ejs",
@@ -25,6 +29,6 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/mourner/yeahjs"
+    "url": "git+https://github.com/mourner/yeahjs.git"
   }
 }
