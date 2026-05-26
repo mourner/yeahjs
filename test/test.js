@@ -70,7 +70,8 @@ test('<%_, _%>', () => {
 });
 
 test('<%%, %%>', () => {
-    assert.equal(compile('<%%- "foo" %>')(), '<%- "foo" %>', 'left literal');
+    assert.equal(compile('<%%- "foo" %%>')(), '<%- "foo" %>', 'left + right literal');
+    assert.equal(compile('<%%- "foo" %>')(), '<%- "foo" ', 'stray %> silently dropped');
     assert.equal(compile('<%%-')(), '<%-', 'left literal alone');
     assert.equal(compile('%%>')(), '%>', 'right literal');
 });
@@ -139,6 +140,26 @@ test('includes in node', () => {
     const post = compile(fs.readFileSync(postFile, 'utf8'), {read, resolve, filename: postFile});
     assert.equal(post(), '<p>(c) Vladimir Agafonkin</p>\n\n<h1>Oh my</h1>\n\n<p>Lorem ipsum</p>\n', 'node resolve 2');
 
+});
+
+test('trailing semicolons in <%= %> / <%- %>', () => {
+    assert.equal(compile('<%= locals.foo; %>')({foo: 'bar'}), 'bar', '<%= expr; %>');
+    assert.equal(compile('<%= locals.foo ;  %>')({foo: 'bar'}), 'bar', '<%= expr ; %> with whitespace');
+    assert.equal(compile('<%- locals.foo; %>')({foo: '<b>'}), '<b>', '<%- expr; %>');
+});
+
+test('stray closing tags', () => {
+    assert.equal(compile('hello %> world')(), 'hello  world', 'stray %> silently dropped');
+    assert.equal(compile('hello -%>\nworld')(), 'hello world', 'stray -%> dropped and trims line break');
+    assert.equal(compile('hello _%>  \nworld')(), 'hello world', 'stray _%> dropped and trims trailing whitespace + newline');
+});
+
+test('compile error reporting', () => {
+    assert.throws(
+        () => compile('<% function foo() return 1; %>', {filename: 'bad.ejs'}),
+        /Failed to compile template in bad\.ejs[\s\S]*Generated code:/,
+        'includes filename and generated code'
+    );
 });
 
 test('async', async () => {

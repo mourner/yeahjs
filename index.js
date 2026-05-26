@@ -54,7 +54,14 @@ export function compile(ejs, options) {
     const {escape, context, filename, localsName, async} = opts;
 
     const code = `'use strict'; ${compilePart(ejs, filename, opts)}`;
-    const fn = new (async ? AsyncFunction : Function)(localsName, '_esc', '_str', code);
+    let fn;
+    try {
+        fn = new (async ? AsyncFunction : Function)(localsName, '_esc', '_str', code);
+    } catch (e) {
+        const where = filename ? ` in ${filename}` : '';
+        const msg = e instanceof Error ? e.message : String(e);
+        throw new Error(`Failed to compile template${where}: ${msg}\nGenerated code:\n${code}`);
+    }
 
     return data => fn.call(context, data ?? null, escape, stringify);
 }
@@ -87,6 +94,7 @@ function compilePart(ejs, filename, options) {
                 code += str.replace(TPL_ESC_RE, escapeTpl);
 
             } else { // JS
+                if (open === '<%=' || open === '<%-') str = str.replace(/;\s*$/, '');
                 code += compileIncludes(str, filename, options);
             }
         }
@@ -101,8 +109,7 @@ function compilePart(ejs, filename, options) {
             case '_%>':
             case '-%>': code +=
                 prev === '<%=' || prev === '<%-' ? '\n)) + `' :
-                prev === '<%' || prev === '<%_' ? '\n_out += `' :
-                prev === '<%#' ? '' : token;
+                prev === '<%' || prev === '<%_' ? '\n_out += `' : '';
                 open = null;
                 break;
             case '<%':
