@@ -5,7 +5,7 @@
         "strict": true,
         "emitDeclarationOnly": true,
         "declaration": true,
-        "target": "es2020",
+        "target": "es2022",
         "module": "nodenext",
         "moduleResolution": "nodenext"
     },

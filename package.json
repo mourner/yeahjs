@@ -9,9 +9,9 @@
   "exports": "./index.js",
   "types": "./index.d.ts",
   "devDependencies": {
-    "eslint": "^10.4.0",
-    "eslint-config-mourner": "^4.1.0",
-    "typescript": "^6.0.3"
+    "eslint": "^10.13.0",
+    "eslint-config-mourner": "^5.0.2",
+    "typescript": "^7.0.2"
   },
   "scripts": {
     "pretest": "eslint index.js test/test.js && tsc",

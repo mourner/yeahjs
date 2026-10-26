@@ -60,7 +60,7 @@ export function compile(ejs, options) {
     } catch (e) {
         const where = filename ? ` in ${filename}` : '';
         const msg = e instanceof Error ? e.message : String(e);
-        throw new Error(`Failed to compile template${where}: ${msg}\nGenerated code:\n${code}`);
+        throw new Error(`Failed to compile template${where}: ${msg}\nGenerated code:\n${code}`, {cause: e});
     }
 
     return data => fn.call(context, data ?? null, escape, stringify);
@@ -105,19 +105,19 @@ function compilePart(ejs, filename, options) {
         }
 
         switch (token) {
-            case '%>':
-            case '_%>':
-            case '-%>': code +=
-                prev === '<%=' || prev === '<%-' ? '\n)) + `' :
-                prev === '<%' || prev === '<%_' ? '\n_out += `' : '';
-                open = null;
-                break;
-            case '<%':
-            case '<%_': code += '`;'; break;
-            case '<%=': code += '` + _esc(_str('; break;
-            case '<%-': code += '` + _str(('; break;
-            case '<%%': code += '<%'; break;
-            case '%%>': code += '%>';
+        case '%>':
+        case '_%>':
+        case '-%>': code +=
+            prev === '<%=' || prev === '<%-' ? '\n)) + `' :
+            prev === '<%' || prev === '<%_' ? '\n_out += `' : '';
+            open = null;
+            break;
+        case '<%':
+        case '<%_': code += '`;'; break;
+        case '<%=': code += '` + _esc(_str('; break;
+        case '<%-': code += '` + _str(('; break;
+        case '<%%': code += '<%'; break;
+        case '%%>': code += '%>';
         }
 
         prev = token;

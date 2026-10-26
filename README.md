@@ -3,8 +3,8 @@
 A tiny, modern, fast implementation of EJS (Embedded JavaScript Templates). A nearly drop-in replacement for [`ejs`](https://ejs.co/) with a few [intentional limitations](#compared-to-ejs).
 
 [![Node](https://github.com/mourner/yeahjs/actions/workflows/node.yml/badge.svg)](https://github.com/mourner/yeahjs/actions/workflows/node.yml)
-[![Install Size](https://packagephobia.now.sh/badge?p=yeahjs)](https://packagephobia.now.sh/result?p=yeahjs)
-[![Min-zipped Size](https://badgen.net/bundlephobia/minzip/yeahjs)](https://bundlephobia.com/result?p=yeahjs)
+[![install size](https://packagephobia.com/badge?p=yeahjs)](https://packagephobia.com/result?p=yeahjs)
+[![Bundle size](https://deno.bundlejs.com/badge?q=yeahjs)](https://bundlejs.com/?q=yeahjs)
 [![Simply Awesome](https://img.shields.io/badge/simply-awesome-brightgreen.svg)](https://github.com/mourner/projects)
 
 ## Example
